@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-07-25
+
+### Fixed
+
+- Declared `openmassspec-core` minimum was still `"1.0.0"` even after
+  0.1.4 started requiring 1.3.0's new `RunMetadata` fields to compile;
+  bumped the declared minimum to `"1.3.0"` to match.
+
 ## [0.1.4] - 2026-07-25
 
 ### Fixed
