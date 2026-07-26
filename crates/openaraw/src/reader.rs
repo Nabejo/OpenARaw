@@ -184,10 +184,12 @@ impl SpectrumSource for Reader {
             source_file_format: CvTerm::new("MS:1002846", "Agilent MassHunter format"),
             native_id_format: CvTerm::new("MS:1002848", "Agilent MassHunter nativeID format"),
             instrument: self.instrument.clone(),
+            instrument_serial_number: None,
             software_name: "openaraw".to_string(),
             software_version: env!("CARGO_PKG_VERSION").to_string(),
             start_timestamp: self.start_timestamp.clone(),
             mobility_array_kind: None,
+            analyzers: Vec::new(),
         }
     }
 

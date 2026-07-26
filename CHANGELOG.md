@@ -21,6 +21,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the Q1/Q3 isolation windows they need are not decoded (only an opaque
   `mrm_channel_id` is). (@Nabejo)
 
+## [0.1.5] - 2026-07-25
+
+### Fixed
+
+- Declared `openmassspec-core` minimum was still `"1.0.0"` even after
+  0.1.4 started requiring 1.3.0's new `RunMetadata` fields to compile;
+  bumped the declared minimum to `"1.3.0"` to match.
+
+## [0.1.4] - 2026-07-25
+
+### Fixed
+
+- Adapted `RunMetadata` construction to `openmassspec-core` 1.3.0's new
+  `analyzers`/`instrument_serial_number` fields (defaulted, as neither is
+  decoded here).
+
+## [0.1.3] - 2026-07-20
+
 ### Security
 
 - `read_bytes` (used to load `MSProfile.bin`/`MSPeak.bin` blocks by the
