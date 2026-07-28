@@ -2,14 +2,21 @@
 #
 # Jobs:
 #   build - cargo fmt --check, cargo clippy -D warnings, cargo test
-#           (Linux + macOS + Windows, mirroring publish.yml's wheel matrix)
+#           (Linux + macOS + Windows, mirroring publish.yml's wheel matrix).
+#           Downloads a small QQQ (MRM) .d.zip fixture from PRIDE and
+#           unzips it ahead of `cargo test` so
+#           crates/openaraw/tests/conformance.rs's test_qqq_conformance
+#           exercises a real decode path instead of skipping - see
+#           Sigilweaver/OpenARaw#20.
 #
-# There is no corpus-download validation job yet (unlike OpenTFRaw's
-# single-file .raw fixture): the corpus this reader validates against is
-# whole .d *directories*, which PRIDE does not expose as a single stable
-# download URL the way it does individual Thermo .raw files, so a CI-time
-# fixture fetch isn't a simple 1:1 port of that pattern. Revisit once a
-# small, CI-friendly .d fixture (or a synthetic one) is available.
+# Unlike OpenTFRaw's single-file .raw fixture, the corpus this reader
+# validates against is whole .d *directories*, which PRIDE does not expose
+# as a single stable download URL the way it does individual Thermo .raw
+# files - PRIDE submitters instead upload a `.d.zip` archive of the whole
+# bundle, so the download step below also unzips it before tests run.
+# No QTOF bundle small enough for a CI download has turned up yet (the
+# smallest known one, PXD004426/20140806_TgAAL.d, is ~247 MB zipped - see
+# CORPUS.md), so test_qtof_conformance still skips in CI until one does.
 
 name: CI
 
@@ -26,6 +33,16 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
+  # Small QQQ (MRM) bundle (~9 MB unpacked, ~1.6 MB zipped) from PRIDE
+  # PXD004747, used as the CI corpus-download fixture for
+  # crates/openaraw/tests/conformance.rs. URL is stable because PRIDE uses
+  # year/month archive paths.
+  PRIDE_DZIP_URL: >-
+    https://ftp.pride.ebi.ac.uk/pride/data/archive/2022/03/PXD004747/Cdc19_ubp2_AQUA.d.zip
+  CORPUS_DZIP_NAME: Cdc19_ubp2_AQUA.d.zip
+  # Keep this directory name in sync with
+  # crates/openaraw/tests/conformance.rs's qqq_fixture() candidates.
+  CORPUS_DIR: corpus
 
 jobs:
   build:
@@ -54,6 +71,23 @@ jobs:
 
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Download corpus fixture for conformance tests
+        shell: bash
+        run: |
+          mkdir -p "$CORPUS_DIR"
+          curl -sSL --user-agent "OpenARaw-CI/1.0" -o "$CORPUS_DIR/$CORPUS_DZIP_NAME" "$PRIDE_DZIP_URL"
+          echo "Downloaded $(du -sh "$CORPUS_DIR/$CORPUS_DZIP_NAME" | cut -f1) corpus fixture archive"
+
+      - name: Extract corpus fixture (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: unzip -q "$CORPUS_DIR/$CORPUS_DZIP_NAME" -d "$CORPUS_DIR"
+
+      - name: Extract corpus fixture (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Expand-Archive -Path "$env:CORPUS_DIR/$env:CORPUS_DZIP_NAME" -DestinationPath "$env:CORPUS_DIR"
 
       - name: cargo test
         run: cargo test --workspace --all-targets

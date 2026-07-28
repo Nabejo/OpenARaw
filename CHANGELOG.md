@@ -21,6 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the Q1/Q3 isolation windows they need are not decoded (only an opaque
   `mrm_channel_id` is). (@Nabejo)
 
+### Testing
+
+- CI now downloads a small QQQ (MRM) `.d.zip` fixture from PRIDE
+  (PXD004747/Cdc19_ubp2_AQUA.d, ~9 MB unpacked) and unzips it ahead of
+  `cargo test`, so `test_qqq_conformance` exercises a real decode path in
+  CI instead of always skipping, matching the corpus-download pattern
+  used by the other vendor crates (e.g. OpenTFRaw). `test_qtof_conformance`
+  still skips in CI: no QTOF bundle small enough for a CI download has
+  turned up yet (the smallest known one is ~247 MB zipped - see
+  CORPUS.md). Fixes #20. (@Nabejo)
+
 ### Documentation
 
 - Updates documentation for Sigilweaver/OpenARaw#21: documented why
